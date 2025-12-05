@@ -7,7 +7,6 @@ import time
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score
-from sklearn.metrics import normalized_mutual_info_score as nmi
 from datetime import datetime
 from sklearn.manifold import TSNE
 
@@ -26,14 +25,9 @@ from MTAGN_utils.plot_utils import plot_confusion_matrix, plot_fft
 from data_generator.HUSTdata_domain import HUST_L1, HUST_L2, HUST_L3, HUST_L4
 # from MTAGN_main.data_generator.SQdata import SQ_39, SQ_29, SQ_19
 # from MTAGN_main.data_generator.EBdata import EB
-from models.jlcnn import JLCNN
-from models.mt1dcnn import MT1DCNN
-from models.MTAGCN import MTAGCN
-from models.No_ECA_attention import MTAGN_NoAtt
 from torch.optim import RAdam #SGD
 from sklearn.metrics import confusion_matrix
-from models.mtagn_MixFeature import MTAGN
-# from models.mtagn import MTAGN
+from models.SFFMT import SFFMT
 
 TASK_TSNE_LABELS = {
     1: ['0', '1', '2', '3', '4'],   # task1 的类名（按你的类别索引顺序）
@@ -121,8 +115,6 @@ class multi_task_trainer:
             train_acc_2 = (train_acc_2 / train_set.__len__()) * 100
             train_F1_1 = f1_score(true_label1_train, pred_label1_train, average='macro')* 100
             train_F1_2 = f1_score(true_label2_train, pred_label2_train, average='macro')* 100
-            train_NMI_1 = nmi(true_label1_train, pred_label1_train, average_method='geometric')* 100
-            train_NMI_2 = nmi(true_label2_train, pred_label2_train, average_method='geometric')* 100
 
 
             # valid
@@ -178,8 +170,6 @@ class multi_task_trainer:
                 valid_acc_2 = 100 * valid_acc_2 / valid_set.__len__()
                 valid_F1_1 = f1_score(true_label1_valid, pred_label1_valid, average='macro')* 100
                 valid_F1_2 = f1_score(true_label2_valid, pred_label2_valid, average='macro')* 100
-                valid_NMI_1 = nmi(true_label1_valid, pred_label1_valid, average_method='geometric')* 100
-                valid_NMI_2 = nmi(true_label2_valid, pred_label2_valid, average_method='geometric')* 100
 
                 if epoch + 1 == epochs:
                     plot_confusion_matrix(valid_set_.labels1.numpy(), pred_label1, norm=True, task=1)
@@ -195,9 +185,9 @@ class multi_task_trainer:
                 X=[counter], update=None if counter == 0 else 'append', win='loss',
                 opts=dict(legend=['train_loss_1', 'train_loss_2', 'train_loss', 'valid_loss_1', 'valid_loss_2',
                                   'valid_loss'], title='Loss', ))
-            vis.line(Y=[[train_acc_1, train_acc_2, train_F1_1, train_F1_2, train_NMI_1, train_NMI_2, valid_acc_1, valid_acc_2, valid_F1_1, valid_F1_2, valid_NMI_1, valid_NMI_2]], X=[counter],
+            vis.line(Y=[[train_acc_1, train_acc_2, train_F1_1, train_F1_2, valid_acc_1, valid_acc_2, valid_F1_1, valid_F1_2]], X=[counter],
                      update=None if counter == 0 else 'append', win='metrics',
-                     opts=dict(legend=['train_acc_1', 'train_acc_2', 'train_F1_1', 'train_F1_2', 'train_NMI_1', 'train_NMI_2', 'valid_acc_1', 'valid_acc_2', 'valid_F1_1', 'valid_F1_2', 'valid_NMI_1', 'valid_NMI_2'], title='Accuracy/F1/NMI'))
+                     opts=dict(legend=['train_acc_1', 'train_acc_2', 'train_F1_1', 'train_F1_2', 'valid_acc_1', 'valid_acc_2', 'valid_F1_1', 'valid_F1_2'], title='Accuracy/F1'))
             vis.line(Y=[[lambda_weight[0, epoch], lambda_weight[1, epoch]]], X=[counter],
                      update=None if counter == 0 else 'append', win='weight',
                      opts=dict(legend=['weight1', 'weight2'], title='Weight'))
@@ -207,17 +197,13 @@ class multi_task_trainer:
             print(
                 'epoch: [{}/{}] | Loss: {:.5f} | FTI_acc_tr: {:.2f}% | FSI_acc_tr: {:.2f}% | '
                 'FTI_F1_tr: {:.2f}% | FSI_F1_tr: {:.2f}% | '
-                'FTI_NMI_tr: {:.2f}% | FSI_NMI_tr: {:.2f}% | '
                 'FTI_acc_val: {:.2f}% | FSI_acc_val: {:.2f}% | '
                 'FTI_F1_val: {:.2f}% | FSI_F1_val: {:.2f}% | '
-                'FTI_NMI_val: {:.2f}% | FSI_NMI_val: {:.2f}% | '
                 'w1:{:.3f} w2:{:.3f}'.format(
                     epoch + 1, epochs, train_loss, train_acc_1, train_acc_2,
                     train_F1_1, train_F1_2,
-                    train_NMI_1, train_NMI_2,
                     valid_acc_1, valid_acc_2,
                     valid_F1_1, valid_F1_2,
-                    valid_NMI_1, valid_NMI_2,
                     lambda_weight[0, epoch], lambda_weight[1, epoch]))
             weight[epoch, 0], weight[epoch, 1] = lambda_weight[0, epoch], lambda_weight[1, epoch]
         print('Finish training!')
@@ -263,8 +249,6 @@ class multi_task_trainer:
             FSI_acc = 100 * acc_2 / test_set_.__len__()
             FTI_f1 = f1_score(true_label1, pred_label1, average='macro')* 100
             FSI_f1 = f1_score(true_label2, pred_label2, average='macro')* 100
-            FTI_nmi = nmi(true_label1, pred_label1, average_method='geometric')* 100
-            FSI_nmi = nmi(true_label2, pred_label2, average_method='geometric')* 100
             te_time = t1 - t0
 
             print('Accuracy and F1 on test_dataset:')
@@ -272,13 +256,11 @@ class multi_task_trainer:
             print(f'FSI-task: {FSI_acc:.2f}%   [{acc_2}/{test_set_.__len__()}]')
             print(f'FTI-task F1 Score: {FTI_f1:.2f}%')
             print(f'FSI-task F1 Score: {FSI_f1:.2f}%')
-            print(f'FTI-task NMI Score: {FTI_nmi:.2f}%')
-            print(f'FSI-task NMI Score: {FSI_nmi:.2f}%')
             print(f'Test time: {te_time:.4f}')
             # plot_confusion_matrix(test_set_.labels1.numpy(), pred_label1, norm=True, task=1)
             # plot_confusion_matrix(test_set_.labels2.numpy(), pred_label2, norm=True, task=2)
-            plot_confusion_matrix(test_set_.labels1.numpy(), pred_label1, norm=True, task=1, fig_name="cm_task1_MTAGCN_HUST.png")
-            plot_confusion_matrix(test_set_.labels2.numpy(), pred_label2, norm=True, task=2, fig_name="cm_task2_MTAGCN_HUST.png")
+            plot_confusion_matrix(test_set_.labels1.numpy(), pred_label1, norm=True, task=1, fig_name="cm_task1_SFFMT_HUST.png")
+            plot_confusion_matrix(test_set_.labels2.numpy(), pred_label2, norm=True, task=2, fig_name="cm_task2_SFFMT_HUST.png")
 
 
     def save(self, filename, model_name_pkl):
@@ -409,14 +391,13 @@ if __name__ == '__main__':
     # ==================== Hyper parameters =====================
     EPOCHS = 100
     BATCH_SIZE = 50 #50
-    LR = 0.0001#0.001
+    LR = 0.001
     # set_seed(2021)
 
     # define model, vis, optimiser
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     vis = visdom.Visdom(env='dwa')
-    model = MTAGCN().to(device)
-    # model = MTAGN().to(device)#MTAGN_NoAtt
+    model = SFFMT().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)#Adam RAdam
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=1)
 
@@ -473,8 +454,8 @@ if __name__ == '__main__':
     trainer = multi_task_trainer(model)
 
     # 模型名字及保存地址
-    model_dir = r'/hy-tmp/MTAGN'
-    model_name = 'MTAGN_eca6_dwa-cw1-100-5.pkl'
+    model_dir = r'/hy-tmp/SFFMT'
+    model_name = 'SFFMT_eca6_dwa-cw1-100-5.pkl'
     # model_name = 'test.pkl'
     model_path = os.path.join(model_dir, model_name)
     print("Model path: ", model_dir)
@@ -496,11 +477,12 @@ if __name__ == '__main__':
     if order_tsne in ["Y", "y"]:
         plot_tsne_from_logits(model, test_loader, device, task=2,
                                 xlabel='First Dimension', ylabel='Second Dimension',
-                                save_path='/hy-tmp/tsne_MTAGCN_HUST_task2.png')
+                                save_path='/hy-tmp/tsne_SFFMT_HUST_task2.png')
 
     # 第三步：无论 task2 选没选，都可以选择 task1
     order_tsne_test = input("Plot t-SNE-1 from logits on VALID set? (Y/N): ")
     if order_tsne_test in ["Y", "y"]:
         plot_tsne_from_logits(model, test_loader, device, task=1,
                                 xlabel='First Dimension', ylabel='Second Dimension',
-                                save_path='/hy-tmp/tsne_MTAGCN_HUST_task1.png')
+                                save_path='/hy-tmp/tsne_SFFMT_HUST_task1.png')
+
