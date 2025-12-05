@@ -5,14 +5,14 @@ import os
 import sys
 import random
 
-# 获取项目根目录（论文4目录）的绝对路径
+# 获取项目根目录（论文目录）的绝对路径
 # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 # # 将根目录添加到sys.path
 # sys.path.append(project_root)
 import sys
 sys.path.append('/hy-tmp')  # 手动加入 hy-tmp 的路径
-from MTAGN_utils.attention_block import Flatten
-from MTAGN_utils.attention_block import Flatten, ECA_Layer, CoordAtt
+from SFFMT_utils.attention_block import Flatten
+from SFFMT_utils.attention_block import Flatten, ECA_Layer, CoordAtt
 
 
 class MixFeature(nn.Module):
@@ -109,9 +109,9 @@ class att_layer(nn.Module):
         return out + x
 
 
-class MTAGN(nn.Module):
+class SFFMT(nn.Module):
     def __init__(self):
-        super(MTAGN, self).__init__()
+        super(SFFMT, self).__init__()
         # initialise network parameters
         filters = [64, 64, 128]
         self.class_1 = 5
@@ -135,16 +135,6 @@ class MTAGN(nn.Module):
             for i in range(2):
                 self.encoder_att[j].append(att_layer(3))
 
-        #SE
-        # self.encoder_att = nn.ModuleList()
-        # for i in range(2):  # tasks
-        #     layers = nn.ModuleList()
-        #     for j in range(3):  # encoder depth
-        #         if j < 2:
-        #             layers.append(att_layer())
-        #         else:
-        #             layers.append(att_layer())  # doubled
-        #     self.encoder_att.append(layers)
 
         # define task conv layers
         self.encoder_att_conv = nn.ModuleList([conv_layer([64, 64], 1)])
@@ -236,6 +226,7 @@ class MTAGN(nn.Module):
 
 if __name__ == '__main__':
     t = torch.randn(50, 1, 2048)
-    Net = MTAGN()
+    Net = SFFMT()
     t = Net(t)
     print(Net)
+
