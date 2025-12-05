@@ -13,8 +13,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 sys.path.append('/root/hy-tmp')  # 手动加入 hy-tmp 的路径
 
 from Data.HUST_dir import hust_L1, hust_L2, hust_L3, hust_L4
-from MTAGN_utils.data_preprocess import add_wgn
-from MTAGN_utils.data_preprocess import standardization
+from SFFMT_utils.data_preprocess import add_wgn
+from SFFMT_utils.data_preprocess import standardization
 import pandas as pd
 from pathlib import Path
 from openpyxl import load_workbook
@@ -269,5 +269,6 @@ if __name__ == '__main__':
     print(train_x.shape, train_y1.shape, train_y2.shape)
     print(valid_x.shape, valid_y1.shape, valid_y2.shape)
     print(test_x.shape, test_y1.shape, test_y2.shape)
+
 
 
