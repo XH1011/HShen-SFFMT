@@ -6,7 +6,7 @@ import re
 from scipy.io import loadmat
 from numpy.lib.stride_tricks import sliding_window_view
 
-# 获取项目根目录（论文4目录）的绝对路径
+# 获取项目根目录（论文目录）的绝对路径
 # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 # # 将根目录添加到sys.path
 # sys.path.append(project_root)
@@ -269,4 +269,5 @@ if __name__ == '__main__':
     print(train_x.shape, train_y1.shape, train_y2.shape)
     print(valid_x.shape, valid_y1.shape, valid_y2.shape)
     print(test_x.shape, test_y1.shape, test_y2.shape)
+
 
