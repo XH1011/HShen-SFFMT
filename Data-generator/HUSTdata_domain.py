@@ -12,7 +12,7 @@ sys.path.append('/hy-tmp')  # 手动加入 hy-tmp 的路径
 from Data.HUST_dir import hust_L1, hust_L2, hust_L3, hust_L4
 from data_generator.HUST_generator import HUST_preprocess
 from torch.utils.data import DataLoader
-from MTAGN_utils.train_utils import MyDataset
+from SFFMT_utils.train_utils import MyDataset
 
 
 def load_hust_data(hust_data, Length=2048, Number=450, Overlap=True, Overlap_step=512, Shuffle=True,
@@ -104,4 +104,5 @@ if __name__ == '__main__':
     # 你可以根据需求选择加载不同的层次数据
     train_X, train_Y1, train_Y2, valid_X, valid_Y1, valid_Y2 = HUST_L1(is_source=True)
     test_X, test_Y1, test_Y2 = HUST_L1(is_source=False)
+
 
