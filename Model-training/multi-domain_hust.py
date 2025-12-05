@@ -20,11 +20,9 @@ sys.path.append('/hy-tmp')  # 手动加入 hy-tmp 的路径
 # # 将根目录添加到sys.path
 # sys.path.append(project_root)
 
-from MTAGN_utils.train_utils import MyDataset, set_seed
-from MTAGN_utils.plot_utils import plot_confusion_matrix, plot_fft
+from SFFMT_utils.train_utils import MyDataset, set_seed
+from SFFMT_utils.plot_utils import plot_confusion_matrix, plot_fft
 from data_generator.HUSTdata_domain import HUST_L1, HUST_L2, HUST_L3, HUST_L4
-# from MTAGN_main.data_generator.SQdata import SQ_39, SQ_29, SQ_19
-# from MTAGN_main.data_generator.EBdata import EB
 from torch.optim import RAdam #SGD
 from sklearn.metrics import confusion_matrix
 from models.SFFMT import SFFMT
@@ -485,4 +483,5 @@ if __name__ == '__main__':
         plot_tsne_from_logits(model, test_loader, device, task=1,
                                 xlabel='First Dimension', ylabel='Second Dimension',
                                 save_path='/hy-tmp/tsne_SFFMT_HUST_task1.png')
+
 
