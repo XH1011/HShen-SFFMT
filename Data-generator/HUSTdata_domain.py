@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 
-# 获取项目根目录（论文4目录）的绝对路径
+# 获取项目根目录（论文目录）的绝对路径
 # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 # # 将根目录添加到sys.path
 # sys.path.append(project_root)
@@ -10,7 +10,7 @@ import sys
 sys.path.append('/hy-tmp')  # 手动加入 hy-tmp 的路径
 
 from Data.HUST_dir import hust_L1, hust_L2, hust_L3, hust_L4
-from data_generator.HUST_generator_fast import HUST_preprocess
+from data_generator.HUST_generator import HUST_preprocess
 from torch.utils.data import DataLoader
 from MTAGN_utils.train_utils import MyDataset
 
@@ -104,3 +104,4 @@ if __name__ == '__main__':
     # 你可以根据需求选择加载不同的层次数据
     train_X, train_Y1, train_Y2, valid_X, valid_Y1, valid_Y2 = HUST_L1(is_source=True)
     test_X, test_Y1, test_Y2 = HUST_L1(is_source=False)
+
